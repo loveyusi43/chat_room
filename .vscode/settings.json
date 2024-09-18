@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.s": "c",
+        "format": "cpp"
+    }
+}
