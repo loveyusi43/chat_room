@@ -10,6 +10,12 @@ Socket::Socket(int family, int type) {
     }
 }
 
+Socket::Socket(int connfd, std::string ip, unsigned short port) : sockfd_{connfd}, ip_addr_{ip}, port_{port} {}
+
+bool Socket::operator==(const ljh::socket::Socket sock) {
+    return sockfd_ == sock.sockfd_;
+}
+
 bool Socket::Bind(const std::string& host, unsigned short int port) {
     struct sockaddr_in sockaddr;
     std::memset(&sockaddr, 0, sizeof(sockaddr));
@@ -35,7 +41,7 @@ bool Socket::Bind(const std::string& host, unsigned short int port) {
 
 bool Socket::Listen(int backlog) {
     if (::listen(sockfd_, backlog) < 0) {
-        throw std::runtime_error(std::format("监听失败, 错误码: {}, 错误信息: {}\n"));
+        throw std::runtime_error(std::format("监听失败, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
     }
 
     std::cout << std::format("Server is listening on {}:{}", ip_addr_, port_) << std::endl;
@@ -56,5 +62,35 @@ Socket Socket::Accept(void) {
     int client_port = ntohs(client_address.sin_port);
     std::cout << "Client connected - IP: " << client_ip << ", Port: " << client_port << std::endl;
     return Socket(connfd, client_ip, client_port);
+}
+
+std::string Socket::Recv(size_t n) {
+    char buffer[n]{};
+    ::memset(buffer, '\0', n);
+    int byte_num = recv(sockfd_, buffer, n, 0);
+    if (byte_num < 0) {
+        throw std::runtime_error(std::format("客户端连接异常, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
+    }
+
+    return std::string{buffer, static_cast<size_t>(byte_num)};
+}
+
+bool Socket::Send(const std::string& message) {
+    return ::send(sockfd_, message.c_str(), message.size(), 0);
+}
+
+// 需要包含<unistd.h>
+void Socket::Close(void) {
+    if (sockfd_ < 0) {
+        throw std::runtime_error(std::format("关闭文件描述符失败, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
+    }
+    if (::close(sockfd_) < 0) {
+        throw std::runtime_error(std::format("关闭文件描述符失败, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
+    }
+}
+
+const std::string& Socket::GetIpAddr(void) {
+    return ip_addr_;
+}
 
 }  // namespace ljh::socket
