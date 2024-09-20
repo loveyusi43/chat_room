@@ -1,4 +1,4 @@
-#include "socket.h"
+#include "socketcpp.h"
 
 namespace ljh::socket {
 
@@ -64,7 +64,24 @@ Socket Socket::Accept(void) {
     return Socket(connfd, client_ip, client_port);
 }
 
-std::string Socket::Recv(size_t n) {
+bool Socket::Connect(const std::string& ip, unsigned short port) {
+    struct sockaddr_in sockaddr;
+    std::memset(&sockaddr, 0, sizeof(sockaddr));
+    sockaddr.sin_family = AF_INET;
+    sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
+    sockaddr.sin_port = htons(port);
+
+    if (::connect(sockfd_, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0) {
+        throw std::runtime_error(std::format("连接服务端失败, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
+        return false;
+    }
+
+    ip_addr_ = ip;
+    port_ = port;
+    return true;
+}
+
+std::string Socket::Recv(size_t n) const {
     char buffer[n]{};
     ::memset(buffer, '\0', n);
     int byte_num = recv(sockfd_, buffer, n, 0);
