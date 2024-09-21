@@ -32,7 +32,7 @@ public:
 
     std::string Recv(size_t) const;
 
-    bool Send(const std::string& message);
+    bool Send(const std::string& message) const;
 
     void Close(void);
 

@@ -92,7 +92,7 @@ std::string Socket::Recv(size_t n) const {
     return std::string{buffer, static_cast<size_t>(byte_num)};
 }
 
-bool Socket::Send(const std::string& message) {
+bool Socket::Send(const std::string& message) const {
     return ::send(sockfd_, message.c_str(), message.size(), 0);
 }
 

@@ -1,20 +1,21 @@
 #include <memory>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "socketcpp.h"
 
-static std::unique_ptr<std::vector<ljh::socket::Socket>> clients_p{std::make_unique<std::vector<ljh::socket::Socket>>()};
+std::unique_ptr<std::unordered_map<std::string, ljh::socket::Socket>> clients_p{
+    std::make_unique<std::unordered_map<std::string, ljh::socket::Socket>>()};
 
 void StartServer(void);
 
-void Broadcast(std::string message, ljh::socket::Socket current_client);
+void Broadcast(std::string message, const std::string& username);
 
-void HandleClient(ljh::socket::Socket& client);
+void HandleClient(std::string username);
 
 int main(int argc, char** argv) {
     StartServer();
-
     return 0;
 }
 
@@ -27,31 +28,33 @@ void StartServer(void) {
 
     while (true) {
         ljh::socket::Socket client{server.Accept()};
-        clients_p->emplace_back(client);
+        std::string username = client.Recv(1024);
+        (*clients_p)[username] = client;
 
-        std::thread{HandleClient, std::ref(client)}.detach();
+        std::thread{HandleClient, username}.detach();
     }
 
     server.Close();
 }
 
-void Broadcast(std::string message, ljh::socket::Socket current_client) {
-    for (auto& client : *clients_p) {
-        if (client == current_client) {
-            continue;
+void HandleClient(std::string username) {
+    while (true) {
+        std::string data = (*clients_p)[username].Recv(1024);
+        if (data.empty()) {
+            std::cout << std::format("{}@{}断开连接", username, (*clients_p)[username].GetIpAddr()) << std::endl;
+            (*clients_p)[username].Close();
+            clients_p->erase(username);
+            break;
         }
-        client.Send(message);
+        Broadcast(data, username);
     }
 }
 
-// client为何不能用const修饰未知
-void HandleClient(ljh::socket::Socket& client) {
-    while (true) {
-        std::string data = client.Recv(1024);
-        if (data.empty()) {
-            std::cout << std::format("{}断开连接", client.GetIpAddr()) << std::endl;
-            client.Close();
-            break;
+void Broadcast(std::string message, const std::string& username) {
+    for (const auto& [name, client] : (*clients_p)) {
+        if (name == username) {
+            continue;
         }
+        client.Send(message);
     }
 }
