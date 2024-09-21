@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv) {
     ljh::socket::Socket login_socket{AF_INET, SOCK_STREAM};
-    login_socket.Bind("127.0.0.1", 8080);
+    login_socket.Bind("127.0.0.1", 6666);
     login_socket.Listen(1024);
 
     while (true) {

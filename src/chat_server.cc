@@ -20,10 +20,8 @@ int main(int argc, char** argv) {
 }
 
 void StartServer(void) {
-    ljh::socket::Socket server{AF_INET6, SOCK_STREAM};
-
-    server.Bind("127.0.0.1", 8080);
-
+    ljh::socket::Socket server{AF_INET, SOCK_STREAM};
+    server.Bind("127.0.0.1", 7777);
     server.Listen(1024);
 
     while (true) {
@@ -41,7 +39,7 @@ void HandleClient(std::string username) {
     while (true) {
         std::string data = (*clients_p)[username].Recv(1024);
         if (data.empty()) {
-            std::cout << std::format("{}@{}断开连接", username, (*clients_p)[username].GetIpAddr()) << std::endl;
+            std::cout << std::format("[{}@{}] 断开连接", username, (*clients_p)[username].GetIpAddr()) << std::endl;
             (*clients_p)[username].Close();
             clients_p->erase(username);
             break;

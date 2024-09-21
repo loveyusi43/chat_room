@@ -93,7 +93,15 @@ std::string Socket::Recv(size_t n) const {
 }
 
 bool Socket::Send(const std::string& message) const {
-    return ::send(sockfd_, message.c_str(), message.size(), 0);
+    int ret = ::send(sockfd_, message.c_str(), message.size(), 0);
+
+    if (ret == 0) {
+        std::cout << std::format("{}:{} 已断开连接\n", ip_addr_, port_);
+        return false;
+    } else if (ret < 0) {
+        std::cout << std::format("{}:{} 连接异常\n", ip_addr_, port_);
+    }
+    return true;
 }
 
 // 需要包含<unistd.h>
