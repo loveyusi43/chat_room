@@ -14,6 +14,8 @@
 namespace ljh::socket {
 class Socket {
 public:
+    Socket() {} // 默认构造很重要
+
     Socket(int family, int type);
 
     Socket(int connfd, std::string ip, unsigned short port);
