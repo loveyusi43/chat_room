@@ -72,7 +72,7 @@ void Chat(const std::string& username) {
 void ReceiveMessage(const ljh::socket::Socket& sock) {
     while (true) {
         std::string message{sock.Recv(1024)};
-        std::cout << message;
+        std::cout << message << std::endl;
     }
 }
 
