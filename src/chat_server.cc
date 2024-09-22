@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "myutility.h"
 #include "socketcpp.h"
 
 std::unique_ptr<std::unordered_map<std::string, ljh::socket::Socket>> clients_p{
@@ -11,6 +12,7 @@ std::unique_ptr<std::unordered_map<std::string, ljh::socket::Socket>> clients_p{
 void StartServer(void);
 
 void Broadcast(std::string message, const std::string& username);
+void PrivateChat(std::string message, const std::string& username);
 
 void HandleClient(std::string username);
 
@@ -44,7 +46,15 @@ void HandleClient(std::string username) {
             clients_p->erase(username);
             break;
         }
-        Broadcast(data, username);
+
+        std::vector<std::string> datas = ljh::utility::SplitString(data, '-');
+        if (datas.size() == 1) {
+            std::cout << datas[0] << std::endl;
+            Broadcast(data, username);
+        } else {
+            std::cout << datas[1] << datas[0] << std::endl;
+            PrivateChat(datas[1], datas[0]);
+        }
     }
 }
 
@@ -54,5 +64,11 @@ void Broadcast(std::string message, const std::string& username) {
             continue;
         }
         client.Send(message);
+    }
+}
+
+void PrivateChat(std::string message, const std::string& username) {
+    if (clients_p->count(username)) {
+        (*clients_p)[username].Send(message);
     }
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <jsoncpp/json/json.h>
 
 #include "socketcpp.h"
 
@@ -11,8 +12,9 @@ void ReceiveMessage(const ljh::socket::Socket& sock);
 void SendMessage(const ljh::socket::Socket& sock);
 
 int main(int argc, char** argv) {
+    Json::Value root;
     std::string username{Login()};
-    std::cout << "登录成功" << std::endl;
+    // std::cout << "登录成功" << std::endl;
     Chat(username);
 
     return 0;
@@ -25,20 +27,36 @@ std::string Login(void) {
     std::string username{};
     std::string password{};
 
-    std::cout << "username:";
-    std::cin >> username;
-    std::cout << "password:";
-    std::cin >> password;
+    int i = 0;
+    for (; i < 3; ++i) {
+        std::cout << "username:";
+        std::cin >> username;
+        std::cout << "password:";
+        std::cin >> password;
 
-    std::string message = username + "-" + password;
+        std::string message = username + "-" + password;
 
-    sock.Send(message);
+        // std::cout << "i=" << i << std::endl;
+        sock.Send(message);
+        // std::cout << "message=" << message << std::endl;
+        std::string data = sock.Recv(1024);
 
-    std::string data = sock.Recv(1024);
+        // std::cout << data;
 
-    std::cout << data;
+        if (data == "true") {
+            std::cout << "登录成功" << std::endl;
+            sock.Close();
+            return username;
+        } else {
+            std::cout << "用户名或密码错误" << std::endl;
+        }
+    }
 
+    std::cout << "登录失败" << std::endl;
     sock.Close();
+    exit(1);
+
+    std::cout << "username" << username << std::endl;
     return username;
 }
 
@@ -56,14 +74,6 @@ void Chat(const std::string& username) {
     std::thread receive_thread{ReceiveMessage, std::ref(sock)};
     std::thread send_thread{SendMessage, std::ref(sock)};
 
-    // while (true) {
-    //     std::string message{};
-    //     std::cout << ">> ";
-    //     std::cin >> message;
-    //     std::getline(std::cin, message);
-    //     sock.Send(message);
-    // }
-
     receive_thread.join();
     send_thread.join();
     sock.Close();
@@ -80,7 +90,7 @@ void SendMessage(const ljh::socket::Socket& sock) {
     while (true) {
         std::string message{};
         std::cout << ">> ";
-        std::cin >> message;
+        std::getline(std::cin, message);
         if (!sock.Send(message)) {
             break;
         }

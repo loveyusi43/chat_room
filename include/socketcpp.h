@@ -14,7 +14,7 @@
 namespace ljh::socket {
 class Socket {
 public:
-    Socket() {} // 默认构造很重要
+    Socket() {}  // 默认构造很重要
 
     Socket(int family, int type);
 
@@ -36,7 +36,9 @@ public:
 
     bool Send(const std::string& message) const;
 
-    void Close(void);
+    bool SetSockopt(int level, int optname, int value);
+
+    void Close(void) const;
 
     const std::string& GetIpAddr(void);
 
@@ -47,4 +49,4 @@ private:
 };
 }  // namespace ljh::socket
 
-#endif // __SOCKETCPP_H
+#endif  // __SOCKETCPP_H

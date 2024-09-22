@@ -3,7 +3,8 @@
 ljh::user::User::User() {
     users_ = {
         {"ljh", "654203"},
-        {"loveyusi", "3502"}};
+        {"loveyusi", "3502"},
+        {"zhangsan", "666"}};
 }
 
 bool ljh::user::User::Login(std::string username, std::string password) {

@@ -104,8 +104,17 @@ bool Socket::Send(const std::string& message) const {
     return true;
 }
 
+bool Socket::SetSockopt(int level, int optname, int value) {
+    if (setsockopt(sockfd_, level, optname, &value, sizeof(value)) < 0) {
+        std::cout << "套接字设置失败" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 // 需要包含<unistd.h>
-void Socket::Close(void) {
+void Socket::Close(void) const {
     if (sockfd_ < 0) {
         throw std::runtime_error(std::format("关闭文件描述符失败, 错误码: {}, 错误信息: {}\n", errno, strerror(errno)));
     }
