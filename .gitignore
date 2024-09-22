@@ -3,3 +3,5 @@
 build/
 
 include/sockcpp.h.gch
+
+bin/
